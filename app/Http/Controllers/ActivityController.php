@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Activity;
-use App\order;
+use App\Order;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\In;
 use GuzzleHttp\Client;
@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\Http;
 
 class ActivityController extends Controller
 {
+
+
+    private $paymentEndpoint='https://api.idpay.ir/v1.1/payment';
     /*
      * show all step payment
      */
@@ -34,43 +37,62 @@ class ActivityController extends Controller
     /*
      * get input data and insert in database and connect to idpay and create transaction
      */
+
     public function store(Request $request)
     {
-        //set params for insert in db and connect to payment api IDPay
+
+
         $params = [
-            'API_KEY' => $request->values['APIKEY'],
-            'sandbox' => $request->values['sandbox'],
-            'name' => $request->values['name'],
-            'phone' => $request->values['phone'],
-            'mail' => $request->values['mail'],
-            'amount' => $request->values['amount'],
-            'reseller' => $request->values['reseller'],
-            'status' => 'processing'
+            'API_KEY' => $request->api_key,
+            'sandbox' => $request->sandbox,
+            'name' => $request->name,
+            'phone' => $request->phone_number,
+            'mail' => $request->email,
+            'amount' => $request->amount,
+            'reseller' => $request->reseller,
+            'status' => 'processing',
+            'callback' => 'http://127.0.0.1:8000/callback',
+            'desc' => 'توضیحات پرداخت کننده',
+
+
         ];
 
-        $params['order_id'] = order::insertGetId($params);
-        $params['desc'] = 'توضیحات پرداخت کننده';
-        $params['callback'] = 'http://127.0.0.1:8000/callback';
 
-        //set value for request field order table
-        $_request['url'] = 'POST: https://api.idpay.ir/v1.1/payment';
-        $_request['header'] = [
+
+        $order = Order::create($params);
+
+        $order->save();
+
+
+        return 'ok';
+
+
+
+
+
+
+
+
+        $header = [
             'Content-Type' => 'application/json',
             "X-API-KEY" => $params['API_KEY'],
             'X-SANDBOX' => $params['sandbox']
         ];
 
-        $_request['params'] = $params;
 
-        //connect to Payment API IDPay
         $client = new Client();
-        $res = $client->request('POST', 'https://api.idpay.ir/v1.1/payment',
+        $res = $client->request('POST', $this->paymentEndpoint,
             [
                 'json' => $params,
-                'headers' => $_request['header'],
+                'headers' => $header,
                 'http_errors' => false
             ]);
+
+
+
         $response = json_decode($res->getBody());
+
+
 
 
         if ($res->getStatusCode() == 201) {
@@ -95,6 +117,9 @@ class ActivityController extends Controller
        $data->tojson();
        $data->request=json_decode($data->request);
        $data->response=json_decode($data->response);
+
+
+
         return $data;
 
     }

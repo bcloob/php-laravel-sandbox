@@ -11,11 +11,42 @@
 |
 */
 
-//Route::get('/', function () {
-//    return view('welcome');
-//});
+use App\Order;
+
+Route::get('/', function () {
+
+
+
+    $params = [
+        'API_KEY' => 'd',
+        'sandbox' => 'd',
+        'name' => 'd',
+        'phone_number' => 'd',
+        'email' => 'ss',
+        'amount' => 'sst',
+        'reseller' => 'ss',
+        'status' => 'processing',
+//        'callback' => 'http://127.0.0.1:8000/callback',
+//        'desc' => 'توضیحات پرداخت کننده',
+
+
+    ];
+
+
+
+    $order = Order::create($params);
+
+    $order->save();
+
+
+    return view('welcome');
+});
+
+
 Route::get('/{id?}', 'ActivityController@show')->name('show');
-Route::POST('activity/store', 'ActivityController@store')->name('store');
+Route::post('activity/store', 'ActivityController@store')->name('store');
+
+
 Route::get('redirect/{url}/{id}', 'ActivityController@redirect')->name('redirect');
 Route::POST('callback', 'ActivityController@callback')->name('callback');
 Route::post('verify', 'ActivityController@verify')->name('verify');
