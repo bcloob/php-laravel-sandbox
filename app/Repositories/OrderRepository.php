@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Activity;
 use App\Order;
 use Illuminate\Database\Eloquent\Model;
 
@@ -10,10 +11,14 @@ class OrderRepository implements OrderRepositoryInterface
     // model property on class instances
     protected $model;
 
+    protected $activity;
+
+
     // Constructor to bind model to repo
-    public function __construct(Order $model)
+    public function __construct(Order $model,Activity $activity)
     {
         $this->model = $model;
+        $this->activity = $activity;
     }
 
 
@@ -79,4 +84,17 @@ class OrderRepository implements OrderRepositoryInterface
     {
         return $this->model->with($relations);
     }
+
+
+    public function createActivity(array $data, $id)
+    {
+        $activity = $this->model->findOrFail($id)->activities()->create($data);
+        return $activity->toArray();
+    }
+
+
+
+
+
+
 }

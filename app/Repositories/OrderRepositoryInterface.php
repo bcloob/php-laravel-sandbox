@@ -13,4 +13,6 @@ interface OrderRepositoryInterface
     public function delete($id);
 
     public function find($id);
+
+    public function createActivity(array $data, $id);
 }

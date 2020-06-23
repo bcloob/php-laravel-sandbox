@@ -5,20 +5,19 @@ namespace App\Http\Controllers;
 use App\Activity;
 use App\Order;
 use App\Repositories\OrderRepositoryInterface;
+use App\Transformers\ActivitiyView;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\In;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Http;
-
+use Spatie\Fractal\Fractal;
 
 
 class ActivityController extends Controller
 {
 
 
-    private $paymentEndpoint='https://api.idpay.ir/v1.1/payment';
-
-
+    private $paymentEndpoint = 'https://api.idpay.ir/v1.1/payment';
 
 
     // space that we can use the repository from
@@ -29,8 +28,6 @@ class ActivityController extends Controller
         $this->model = $model;
 
     }
-
-
 
 
     /*
@@ -44,7 +41,7 @@ class ActivityController extends Controller
         $order = [];
         $data = [];
         if ($id != 0) {
-            $order=Order::where('id',$id)->first();
+            $order = Order::where('id', $id)->first();
             $activity = Activity::where('order_id', $id)->get();
             $activity->toJson();
 
@@ -62,16 +59,16 @@ class ActivityController extends Controller
     public function store(Request $request)
     {
 
-        $order=$this->model->create($request->toArray());
+        $order = $this->model->create($request->toArray());
 
         $params = [
-            'order_id'=>$order->id,
+            'order_id' => $order->id,
             'API_KEY' => $request->api_key,
             'sandbox' => $request->sandbox,
             'name' => $request->name,
             'phone_number' => $request->phone_number,
             'email' => $request->email,
-            'amount' =>  $request->amount,
+            'amount' => $request->amount,
             'reseller' => $request->reseller,
             'status' => 'processing',
             'callback' => 'http://127.0.0.1:8000/callback',
@@ -98,37 +95,34 @@ class ActivityController extends Controller
         $responseBody = json_decode($response->getBody());
 
 
-
-
-
-
         if ($response->getStatusCode() == 201) {
 
-            $this->model->update(['return_id'=>$responseBody->id],$order->id);
+            $this->model->update(['return_id' => $responseBody->id], $order->id);
 
         }
 
+
         //set value for activity table
         $activity = [
-            'order_id' => $order->id,
             'step' => 'create',
-            'request' => json_encode($_request),
-            'response' => $responseBody->getBody()
+            'request' => json_encode($params),
+            'response' => json_encode($responseBody)
         ];
 
-        $order->activities()->save($activity);
-       $id=Activity::insertGetId($activity);
+
+        $activity = $this->model->createActivity($activity, $order->id);
+
+
+        $activity = Fractal::create()->item($activity, new ActivitiyView())
+            ->toArray();
 
 
 
-       $data=Activity::where('id',$id)->first();
-       $data->tojson();
-       $data->request=json_decode($data->request);
-       $data->response=json_decode($data->response);
+        $html= view('partial.paymentAnswer')->with([
+            'activity' => $activity,
+        ])->render();
 
-
-
-        return $data;
+        return $html;
 
     }
 
@@ -258,17 +252,17 @@ class ActivityController extends Controller
             'request' => json_encode($_request),
             'response' => $res->getBody()
         ];
-        $id=Activity::insertGetId($activity);
+        $id = Activity::insertGetId($activity);
 
         //update staus
         Order::where('id', $params['order_id'])
             ->update(['status' => 'complete']);
 
 
-        $data=Activity::where('id',$id)->first();
+        $data = Activity::where('id', $id)->first();
         $data->tojson();
-        $data->request=json_decode($data->request);
-        $data->response=json_decode($data->response);
+        $data->request = json_decode($data->request);
+        $data->response = json_decode($data->response);
         return $data;
 
     }
@@ -281,7 +275,7 @@ class ActivityController extends Controller
             'order_id' => $request['order_id'],
             'step' => 'redirect',
             'request' => json_encode(['url ' . $request['link']]),
-            'response' =>json_encode([])
+            'response' => json_encode([])
         ];
         Activity::insert($activity);
 
