@@ -20,7 +20,9 @@
         <div class="col-lg-6">
 
 
-            <form class="form-horizontal" action="{{route('store')}}" id="snedPaymentApi">
+            <form class="form-horizontal" action="{{route('store')}}" {{--id="snedPaymentApi"--}} method="post">
+
+                @csrf
                 <div class="form-group">
                     <label class="control-label col-sm-2" for="{{__('api_key')}}">{{__('api_key')}}:</label>
                     <div class="col-sm-10">
@@ -63,11 +65,14 @@
                 </div>
 
 
+
+
                 <div class="form-group">
                     <div class="col-sm-offset-2 col-sm-10">
-                        <div class="checkbox">
-                            <label><input type="checkbox" name="{{__('sandbox')}}"> {{__('sandbox')}}</label>
-                        </div>
+                        <select  class="form-control"  name="sandbox" id="exampleFormControlSelect2">
+                            <option value="1">YES</option>
+                            <option value="0">NO</option>
+                        </select>
                     </div>
                 </div>
 

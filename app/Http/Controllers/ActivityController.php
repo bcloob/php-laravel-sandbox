@@ -4,21 +4,42 @@ namespace App\Http\Controllers;
 
 use App\Activity;
 use App\Order;
+use App\Repositories\OrderRepositoryInterface;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\In;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Http;
+
+
 
 class ActivityController extends Controller
 {
 
 
     private $paymentEndpoint='https://api.idpay.ir/v1.1/payment';
+
+
+
+
+    // space that we can use the repository from
+    protected $model;
+
+    public function __construct(OrderRepositoryInterface $model)
+    {
+        $this->model = $model;
+
+    }
+
+
+
+
     /*
      * show all step payment
      */
     public function show($id = 0)
     {
+
+
         $activity = [];
         $order = [];
         $data = [];
@@ -41,37 +62,22 @@ class ActivityController extends Controller
     public function store(Request $request)
     {
 
+        $order=$this->model->create($request->toArray());
 
         $params = [
+            'order_id'=>$order->id,
             'API_KEY' => $request->api_key,
             'sandbox' => $request->sandbox,
             'name' => $request->name,
-            'phone' => $request->phone_number,
-            'mail' => $request->email,
-            'amount' => $request->amount,
+            'phone_number' => $request->phone_number,
+            'email' => $request->email,
+            'amount' =>  $request->amount,
             'reseller' => $request->reseller,
             'status' => 'processing',
             'callback' => 'http://127.0.0.1:8000/callback',
             'desc' => 'توضیحات پرداخت کننده',
 
-
         ];
-
-
-
-        $order = Order::create($params);
-
-        $order->save();
-
-
-        return 'ok';
-
-
-
-
-
-
-
 
         $header = [
             'Content-Type' => 'application/json',
@@ -81,7 +87,7 @@ class ActivityController extends Controller
 
 
         $client = new Client();
-        $res = $client->request('POST', $this->paymentEndpoint,
+        $response = $client->request('POST', $this->paymentEndpoint,
             [
                 'json' => $params,
                 'headers' => $header,
@@ -89,26 +95,28 @@ class ActivityController extends Controller
             ]);
 
 
-
-        $response = json_decode($res->getBody());
-
+        $responseBody = json_decode($response->getBody());
 
 
 
-        if ($res->getStatusCode() == 201) {
 
-            //insert return id from API in order table
-            Order::where('id', $params['order_id'])
-                ->update(['return_id' => $response->id]);
+
+
+        if ($response->getStatusCode() == 201) {
+
+            $this->model->update(['return_id'=>$responseBody->id],$order->id);
+
         }
 
         //set value for activity table
         $activity = [
-            'order_id' => $params['order_id'],
+            'order_id' => $order->id,
             'step' => 'create',
             'request' => json_encode($_request),
-            'response' => $res->getBody()
+            'response' => $responseBody->getBody()
         ];
+
+        $order->activities()->save($activity);
        $id=Activity::insertGetId($activity);
 
 

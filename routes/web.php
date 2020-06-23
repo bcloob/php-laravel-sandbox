@@ -12,35 +12,62 @@
 */
 
 use App\Order;
+use GuzzleHttp\Client;
 
-Route::get('/', function () {
-
-
-
-    $params = [
-        'API_KEY' => 'd',
-        'sandbox' => 'd',
-        'name' => 'd',
-        'phone_number' => 'd',
-        'email' => 'ss',
-        'amount' => 'sst',
-        'reseller' => 'ss',
-        'status' => 'processing',
-//        'callback' => 'http://127.0.0.1:8000/callback',
-//        'desc' => 'توضیحات پرداخت کننده',
-
-
-    ];
-
-
-
-    $order = Order::create($params);
-
-    $order->save();
-
-
-    return view('welcome');
-});
+//Route::get('/', function () {
+//
+//
+//
+//    $params = [
+//        'API_KEY' => '53053025-a5b6-4926-aa74-427b95c285d4 ',
+//        'sandbox' => '1',
+//        'name' => 'mohammad',
+//        'phone_number' => '09361446385',
+//        'email' => 'mohammad@gmail.com',
+//        'amount' => '3000',
+//        'reseller' => '30000',
+//        'status' => '30000',
+//
+//    ];
+//
+//
+//    $params['callback']='http://127.0.0.1:8000/callback';
+//    $params['desc']='توضیحات پرداخت کننده';
+//    $params['order_id']='1';
+//
+//
+//    $header = [
+//        'Content-Type' => 'application/json',
+//        "X-API-KEY" => $params['API_KEY'],
+//        'X-SANDBOX' => $params['sandbox']
+//    ];
+//
+//    $client = new Client();
+//    $res = $client->request('POST','https://api.idpay.ir/v1.1/payment',
+//        [
+//            'json' => $params,
+//            'headers' => $header,
+//            'http_errors' => false
+//        ]);
+//
+//
+//
+//    $response = json_decode($res->getBody());
+//
+//
+//    dd($response);
+//
+//
+//
+//
+//    $order = Order::create($params);
+//
+//    $order->save();
+//
+//
+////    dd($order->toArray());
+//    return view('welcome');
+//});
 
 
 Route::get('/{id?}', 'ActivityController@show')->name('show');
