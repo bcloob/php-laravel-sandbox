@@ -37,6 +37,8 @@ class ActivityController extends Controller
     {
 
 
+
+
         $activity = [];
         $order = [];
         $data = [];
@@ -48,6 +50,8 @@ class ActivityController extends Controller
         }
         $data['activity'] = $activity;
         $data['order'] = $order;
+
+//        dd($data);
 
         return view('show', $data);
     }
@@ -125,7 +129,7 @@ class ActivityController extends Controller
         ])->render();
 
         $transferToPort = view('partial.transferToPort')->with([
-            'link' => json_decode($activity['data']['response'])->link,
+            'link' => $activity['data']['link']
         ])->render();
 
         return \response()->json(['status' => 'OK', 'paymentAnswer' => $paymentAnswer, 'transferToPort' => $transferToPort, 'message' => 'salam khosh amadi']);
@@ -136,6 +140,18 @@ class ActivityController extends Controller
 
     public function payment(Request $request)
     {
+
+
+
+        $activity = [
+            'step' => 'create',
+            'request' => json_encode($params),
+            'response' => json_encode($responseBody)
+        ];
+
+
+        $activity = $this->model->createActivity($activity, $order->id);
+
 
 
         return $request->link;
@@ -151,23 +167,33 @@ class ActivityController extends Controller
     {
 
 
-        //check pay amount is equal orginal amount
-        $order = Order::where('id', $request->order_id)->first();
-        if ($order->amount != $request->amount) {
-            $request->request->add(['status' => 405]);
-        }
 
-
-        $request->request->add(['message' => $this->get_status_description($request->status)]);
-
-        //set data for insert in activity table
+//        dd($request->all());
         $activity = array(
             'order_id' => $request['order_id'],
             'step' => 'return',
             'request' => json_encode([]),
             'response' => json_encode($request->all())
         );
-        Activity::insert($activity);
+
+        $this->model->createActivity($activity,$request->order_id);
+
+
+
+//        dd('d');
+//
+//        //check pay amount is equal orginal amount
+//        $order = Order::where('id', $request->order_id)->first();
+//        if ($order->amount != $request->amount) {
+//            $request->request->add(['status' => 405]);
+//        }
+//
+//
+////        $request->request->add(['message' => $this->get_status_description($request->status)]);
+//
+//        //set data for insert in activity table
+//
+//        Activity::insert($activity);
 
 
         return redirect()->route('show', $request['order_id']);

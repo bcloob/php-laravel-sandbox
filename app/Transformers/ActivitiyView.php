@@ -33,13 +33,44 @@ class ActivitiyView extends TransformerAbstract
     public function transform($activity)
     {
 
+
+
+      $result=$this->transform2($activity);
+
+
+
         return [
 
+
             'id' => $activity['id'],
-            'request' => $activity['request'],
+            'request' => json_encode($result),
             'response' => $activity['response'],
             'order_id' => $activity['order_id'],
             'step' => $activity['step'],
+            'link' =>  json_decode($activity['response'])->link,
+
+
+        ];
+    }
+
+
+
+    public function transform2($activity)
+    {
+
+        $params = json_decode($activity['request']);
+        $header = [
+            'Content-Type' => 'application/json',
+            "X-API-KEY" => $params->API_KEY,
+            'X-SANDBOX' => $params->sandbox
+        ];
+
+
+        return [
+
+            'url'=>'https://api.idpay.ir/v1.1/payment',
+            'header'=>$header,
+            'params'=>$params
 
         ];
     }
