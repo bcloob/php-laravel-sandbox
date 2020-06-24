@@ -130,6 +130,29 @@
     </div>
 
 
+    <hr>
+    <br>
+
+
+    <div class="row">
+
+        <div  class="col-lg-6" id="callbackResult">
+
+
+        </div>
+
+        <div  class="col-lg-6" id="callbackResult">
+
+            {!! $callbackResultHtml !!}
+
+        </div>
+
+
+
+    </div>
+
+
+
     <br>
     <br>
 

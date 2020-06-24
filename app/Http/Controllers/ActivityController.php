@@ -39,16 +39,20 @@ class ActivityController extends Controller
         $paymentAnswerHtml = '';
         $callbackHtml = '';
         $transferToPortHtml = '';
+        $callbackResultHtml = '';
 
 
         if ($id !== null) {
 
             $order = Order::find($id);
             $activityCreate = $order->activities->where('step', 'create')->last();
-
+            $callbackResult = $order->activities->where('step', 'return')->last();
 
             $activityCreate = Fractal::create()->item($activityCreate, new ActivitiyView())
                 ->toArray();
+//
+//            $callbackResult = Fractal::create()->item($callbackResult, new ActivitiyView())
+//                ->toArray();
 
 
 
@@ -59,12 +63,19 @@ class ActivityController extends Controller
              $transferToPortHtml= view('partial.transferToPort')->with([
                 'link' => $activityCreate['data']['link'],
                 'order_id' => $order->id,
-            ]);
+            ])->render();
 
 
             $callbackHtml = view('partial.callback')->with([
                 'callback' => json_decode($activityCreate['data']['request'])->params->callback,
-            ]);
+            ])->render();
+
+
+
+            $callbackResultHtml = view('partial.callbackResult')->with([
+                'callbackResult' => $callbackResult,
+            ])->render();
+
 
 
         }
@@ -76,6 +87,7 @@ class ActivityController extends Controller
                     'paymentAnswerHtml' => $paymentAnswerHtml,
                     'transferToPortHtml' => $transferToPortHtml,
                     'callbackHtml' => $callbackHtml,
+                    'callbackResultHtml' => $callbackResultHtml,
                 ]
             );
 
@@ -188,6 +200,9 @@ class ActivityController extends Controller
      */
     public function callback(Request $request)
     {
+
+
+
 
 
         $activity = array(
