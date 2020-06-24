@@ -1,4 +1,4 @@
-<form class="form-horizontal" action="{{route('payment')}}" id="transferToPortRequest">
+<form class="form-horizontal" action="{{route('payment',['id'=>$order_id])}}" id="transferToPortRequest">
 
 
     <input type="hidden" name="link" value="{{$link}}">

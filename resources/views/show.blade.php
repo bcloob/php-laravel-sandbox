@@ -96,6 +96,10 @@
 
         <div class="col-lg-6" id="paymentResult">
 
+            {!! $paymentAnswerHtml !!}
+
+
+
         </div>
 
 
@@ -110,9 +114,14 @@
 
         <div class="col-lg-6" id="transferToPort">
 
+            {!! $transferToPortHtml !!}
+
         </div>
 
         <div class="col-lg-6" id="transferToPortWait">
+
+            {!! $callbackHtml !!}
+
 
             <div id="timing"></div>
 

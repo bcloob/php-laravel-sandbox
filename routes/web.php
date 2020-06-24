@@ -18,6 +18,14 @@ use GuzzleHttp\Client;
 //
 //
 //
+//
+//
+//
+////    dd($activity);
+//
+//
+//
+//
 //    $params = [
 //        'API_KEY' => '53053025-a5b6-4926-aa74-427b95c285d4 ',
 //        'sandbox' => '1',
@@ -74,7 +82,7 @@ Route::get('/{id?}', 'ActivityController@show')->name('show');
 Route::post('activity/store', 'ActivityController@store')->name('store');
 
 
-Route::post('activity/payment', 'ActivityController@payment')->name('payment');
+Route::post('activity/payment/{id}', 'ActivityController@payment')->name('payment');
 
 
 Route::get('redirect/{url}/{id}', 'ActivityController@redirect')->name('redirect');

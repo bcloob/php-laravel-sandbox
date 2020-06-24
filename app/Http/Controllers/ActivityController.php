@@ -33,23 +33,52 @@ class ActivityController extends Controller
     /*
      * show all step payment
      */
-    public function show($id = 0)
+    public function show($id = null)
     {
 
+        $paymentAnswerHtml = '';
+        $callbackHtml = '';
+        $transferToPortHtml = '';
+
+
+        if ($id !== null) {
+
+            $order = Order::find($id);
+            $activityCreate = $order->activities->where('step', 'create')->last();
+
+
+            $activityCreate = Fractal::create()->item($activityCreate, new ActivitiyView())
+                ->toArray();
 
 
 
-        $activity = [];
-        $order = [];
-        $data = [];
-        if ($id != 0) {
-            $order = Order::where('id', $id)->first();
-            $activity = Activity::where('order_id', $id)->get();
-            $activity->toJson();
+            $paymentAnswerHtml = view('partial.paymentAnswer')->with([
+                'activity' => $activityCreate,
+            ])->render();
+
+             $transferToPortHtml= view('partial.transferToPort')->with([
+                'link' => $activityCreate['data']['link'],
+                'order_id' => $order->id,
+            ]);
+
+
+            $callbackHtml = view('partial.callback')->with([
+                'callback' => json_decode($activityCreate['data']['request'])->params->callback,
+            ]);
+
 
         }
-        $data['activity'] = $activity;
-        $data['order'] = $order;
+
+
+        return view('show')
+            ->with(
+                [
+                    'paymentAnswerHtml' => $paymentAnswerHtml,
+                    'transferToPortHtml' => $transferToPortHtml,
+                    'callbackHtml' => $callbackHtml,
+                ]
+            );
+
 
 //        dd($data);
 
@@ -129,7 +158,8 @@ class ActivityController extends Controller
         ])->render();
 
         $transferToPort = view('partial.transferToPort')->with([
-            'link' => $activity['data']['link']
+            'link' => $activity['data']['link'],
+            'order_id' => $order->id,
         ])->render();
 
         return \response()->json(['status' => 'OK', 'paymentAnswer' => $paymentAnswer, 'transferToPort' => $transferToPort, 'message' => 'salam khosh amadi']);
@@ -138,25 +168,18 @@ class ActivityController extends Controller
     }
 
 
-    public function payment(Request $request)
+    public function payment(Request $request, $id)
     {
 
-
-
+        $order = Order::find($id);
         $activity = [
-            'step' => 'create',
-            'request' => json_encode($params),
-            'response' => json_encode($responseBody)
+            'step' => 'redirect',
+            'request' => $order->activities->last()->request,
+            'response' => json_encode([]),
         ];
 
-
         $activity = $this->model->createActivity($activity, $order->id);
-
-
-
         return $request->link;
-
-
     }
 
 
@@ -167,8 +190,6 @@ class ActivityController extends Controller
     {
 
 
-
-//        dd($request->all());
         $activity = array(
             'order_id' => $request['order_id'],
             'step' => 'return',
@@ -176,8 +197,7 @@ class ActivityController extends Controller
             'response' => json_encode($request->all())
         );
 
-        $this->model->createActivity($activity,$request->order_id);
-
+        $this->model->createActivity($activity, $request->order_id);
 
 
 //        dd('d');
