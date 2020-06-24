@@ -9,8 +9,6 @@
     var obj =@php echo $activity['data']['request'] @endphp;
     var obj2 =@php echo $activity['data']['response'] @endphp;
 
-        // el_up.innerHTML = JSON.stringify(obj);
-
 
         el_down.innerHTML = JSON.stringify(obj, undefined, 4);
         el_down2.innerHTML = JSON.stringify(obj2, undefined, 4);

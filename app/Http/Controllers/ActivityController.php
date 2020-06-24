@@ -52,10 +52,13 @@ class ActivityController extends Controller
         return view('show', $data);
     }
 
-    /*
-     * get input data and insert in database and connect to idpay and create transaction
-     */
 
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Throwable
+     */
     public function store(Request $request)
     {
 
@@ -117,14 +120,29 @@ class ActivityController extends Controller
             ->toArray();
 
 
-
-        $html= view('partial.paymentAnswer')->with([
+        $paymentAnswer = view('partial.paymentAnswer')->with([
             'activity' => $activity,
         ])->render();
 
-        return $html;
+        $transferToPort = view('partial.transferToPort')->with([
+            'link' => json_decode($activity['data']['response'])->link,
+        ])->render();
+
+        return \response()->json(['status' => 'OK', 'paymentAnswer' => $paymentAnswer, 'transferToPort' => $transferToPort, 'message' => 'salam khosh amadi']);
+
 
     }
+
+
+    public function payment(Request $request)
+    {
+
+
+        return $request->link;
+
+
+    }
+
 
     /*
      * after connect in API IDPay return this function
