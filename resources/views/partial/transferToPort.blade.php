@@ -1,6 +1,4 @@
 <form class="form-horizontal" action="{{route('payment',['id'=>$order_id])}}" id="transferToPortRequest">
-
-
     <input type="hidden" name="link" value="{{$link}}">
     <div class="form-group">
         <div class="col-sm-offset-3 col-sm-9">
@@ -8,6 +6,8 @@
         </div>
     </div>
 </form>
+
+
 
 
 <script>
@@ -26,7 +26,9 @@
 
         function begin() {
             timing = 3;
+
             $('#timing').html('درحال انتقال به درگاه ' + timing);
+            $('#msg').show();
             // $('#begin').prop('disabled', true);
             myTimer = setInterval(function () {
                 --timing;
@@ -34,7 +36,6 @@
                 if (timing === 0) {
                     // alert('Too late! Try again');
                     clearInterval(myTimer);
-
 
 
                     //
@@ -51,7 +52,7 @@
                         data: form.serialize(),
                         success: function (result) {
 
-                            window.location.replace(result);
+                            window.location.replace(result.link);
 
                         },
                         error: function (error) {

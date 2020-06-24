@@ -87,5 +87,10 @@ Route::post('activity/payment/{id}', 'ActivityController@payment')->name('paymen
 
 Route::get('redirect/{url}/{id}', 'ActivityController@redirect')->name('redirect');
 Route::POST('callback', 'ActivityController@callback')->name('callback');
-Route::post('verify', 'ActivityController@verify')->name('verify');
+
+Route::post('verify/{id}', 'ActivityController@verify')->name('verify');
+
+
+
+
 Route::post('store_callback', 'ActivityController@store_callback')->name('store_callback');

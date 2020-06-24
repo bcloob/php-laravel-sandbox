@@ -13,7 +13,12 @@ return [
     |
     */
 
-    'reseller' => 'نام دسته بندی',
-
+    'reseller' => 'کد نمایندگی',
+    'sanbox' => 'آزمایشگاه',
+    'email' => 'ایمیل',
+    'name' => 'نام',
+    'amount' => 'قیمت',
+    'phone_number' => 'شماره تلفن',
+    'api_key' => 'APIKEY',
 
 ];

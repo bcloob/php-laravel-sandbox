@@ -6,16 +6,15 @@
 
 @section('content')
 
-    <blockquote class="blockquote text-center">
-        <p class="mb-0">ایجاد تراکنش</p>
-        <footer class="blockquote-footer"><cite title="Source Title">برای ایجاد تراکنش باید مقادیر زیر را کامل
-                کنید.</cite></footer>
-    </blockquote>
 
-    <br>
-    <br>
+
 
     <div class="row">
+        <blockquote class="blockquote text-center titleAction">
+            <p class="mb-0">ایجاد تراکنش</p>
+            <footer class="blockquote-footer"><cite title="Source Title">برای ایجاد تراکنش باید مقادیر زیر را کامل
+                    کنید.</cite></footer>
+        </blockquote>
 
 
         <div class="col-lg-6">
@@ -98,18 +97,22 @@
 
             {!! $paymentAnswerHtml !!}
 
-
-
         </div>
 
 
     </div>
 
 
-    <hr>
-    <br>
+
+
+
 
     <div class="row">
+        <blockquote class="blockquote text-center titleAction" id="titleTranserToGetway">
+            <p class="mb-0">انتقال به درگاه</p>
+            <footer class="blockquote-footer"><cite title="Source Title">
+                </cite></footer>
+        </blockquote>
 
 
         <div class="col-lg-6" id="transferToPort">
@@ -123,38 +126,41 @@
             {!! $callbackHtml !!}
 
 
-            <div id="timing"></div>
+            <div id="timing" class="en"></div>
+            <div id="msg"  class="en" style="display: none">Redirect to {{env('Call_Back_URL')}}</div>
+
+
+
 
         </div>
 
     </div>
 
 
-    <hr>
-    <br>
+
 
 
     <div class="row">
 
-        <div  class="col-lg-6" id="callbackResult">
-
-
-        </div>
-
-        <div  class="col-lg-6" id="callbackResult">
-
-            {!! $callbackResultHtml !!}
-
-        </div>
-
-
+        {!! $callbackResultHtml !!}
 
     </div>
 
 
 
-    <br>
-    <br>
+
+
+
+
+    <div class="row">
+
+        {!! $verifyTansactionHtml !!}
+
+    </div>
+
+
+
+
 
 
 
@@ -185,30 +191,9 @@
                 data: form.serialize(),
                 success: function (result) {
 
-
+                    jQuery('#titleTranserToGetway').show();
                     jQuery('#paymentResult').html(result.paymentAnswer);
                     jQuery('#transferToPort').html(result.transferToPort);
-                    // console.log(result.status);
-                    // if (result.status == 'ERROR') {
-                    //     // alert('erroe');
-                    //     alert(result.message);
-                    //     console.log(result);
-                    // } else if (result.status == 'OK') {
-                    //     // alert(result.message);
-                    //     // console.log(result);
-                    //     // console.log('I was successful');
-                    //     // // jQuery('#' + content).html(result.data);
-                    //     // $('#' + content + '_forEche').append(result.data)
-                    //     //
-                    //     //
-                    //     // $(form).toggle();
-                    //     // // $(create_button).show();
-                    //     // $(form)[0].reset();
-                    //     // $('#' + create_button).toggle(200);
-                    //
-                    //
-                    //     // $('#createButton_project').show();
-                    // }
 
                 },
                 error: function (error) {

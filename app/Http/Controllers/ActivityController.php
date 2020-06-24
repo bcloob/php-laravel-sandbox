@@ -6,10 +6,12 @@ use App\Activity;
 use App\Order;
 use App\Repositories\OrderRepositoryInterface;
 use App\Transformers\ActivitiyView;
+use App\Transformers\CallBackResultArry;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\In;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Http;
+use PHPUnit\Framework\Constraint\Callback;
 use Spatie\Fractal\Fractal;
 
 
@@ -18,6 +20,7 @@ class ActivityController extends Controller
 
 
     private $paymentEndpoint = 'https://api.idpay.ir/v1.1/payment';
+    private $calbackUrl;
 
 
     // space that we can use the repository from
@@ -25,13 +28,16 @@ class ActivityController extends Controller
 
     public function __construct(OrderRepositoryInterface $model)
     {
+        $this->calbackUrl=env('Call_Back_URL');
         $this->model = $model;
 
     }
 
 
-    /*
-     * show all step payment
+    /**
+     * @param null $id
+     * @return $this|\Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     * @throws \Throwable
      */
     public function show($id = null)
     {
@@ -40,6 +46,7 @@ class ActivityController extends Controller
         $callbackHtml = '';
         $transferToPortHtml = '';
         $callbackResultHtml = '';
+        $verifyTansactionHtml = '';
 
 
         if ($id !== null) {
@@ -50,32 +57,40 @@ class ActivityController extends Controller
 
             $activityCreate = Fractal::create()->item($activityCreate, new ActivitiyView())
                 ->toArray();
-//
-//            $callbackResult = Fractal::create()->item($callbackResult, new ActivitiyView())
-//                ->toArray();
-
 
 
             $paymentAnswerHtml = view('partial.paymentAnswer')->with([
                 'activity' => $activityCreate,
             ])->render();
 
-             $transferToPortHtml= view('partial.transferToPort')->with([
+            $transferToPortHtml = view('partial.transferToPort')->with([
                 'link' => $activityCreate['data']['link'],
                 'order_id' => $order->id,
             ])->render();
 
 
             $callbackHtml = view('partial.callback')->with([
-                'callback' => json_decode($activityCreate['data']['request'])->params->callback,
+                'url' => json_decode($activityCreate['data']['response'])->link,
             ])->render();
 
 
 
+            $callbackResultArray = Fractal::create()->item($callbackResult->response, new CallBackResultArry())
+                ->toArray();
+
+//            dd($callbackResultArray['data']);
             $callbackResultHtml = view('partial.callbackResult')->with([
-                'callbackResult' => $callbackResult,
+                'callbackResult' => $callbackResultArray['data'],
+                'url' => json_decode($activityCreate['data']['response'])->link,
+
             ])->render();
 
+
+
+            $verifyTansactionHtml = view('partial.verifyTransaction')->with([
+                'callbackResult' => $callbackResult,
+                'order_id' => $order->id,
+            ])->render();
 
 
         }
@@ -88,13 +103,10 @@ class ActivityController extends Controller
                     'transferToPortHtml' => $transferToPortHtml,
                     'callbackHtml' => $callbackHtml,
                     'callbackResultHtml' => $callbackResultHtml,
+                    'verifyTansactionHtml' => $verifyTansactionHtml,
                 ]
             );
 
-
-//        dd($data);
-
-        return view('show', $data);
     }
 
 
@@ -119,7 +131,7 @@ class ActivityController extends Controller
             'amount' => $request->amount,
             'reseller' => $request->reseller,
             'status' => 'processing',
-            'callback' => 'http://127.0.0.1:8000/callback',
+            'callback' => $this->calbackUrl,
             'desc' => 'توضیحات پرداخت کننده',
 
         ];
@@ -141,6 +153,11 @@ class ActivityController extends Controller
 
 
         $responseBody = json_decode($response->getBody());
+
+//        if ($response->getStatusCode() !== 201)
+//            return \response()->json(['status' => 'OK', 'paymentAnswer' => $paymentAnswer, 'transferToPort' => $transferToPort, 'message' => 'salam khosh amadi']);
+//
+
 
 
         if ($response->getStatusCode() == 201) {
@@ -172,6 +189,7 @@ class ActivityController extends Controller
         $transferToPort = view('partial.transferToPort')->with([
             'link' => $activity['data']['link'],
             'order_id' => $order->id,
+            'callBackUrl' => $this->calbackUrl,
         ])->render();
 
         return \response()->json(['status' => 'OK', 'paymentAnswer' => $paymentAnswer, 'transferToPort' => $transferToPort, 'message' => 'salam khosh amadi']);
@@ -191,7 +209,7 @@ class ActivityController extends Controller
         ];
 
         $activity = $this->model->createActivity($activity, $order->id);
-        return $request->link;
+        return \response()->json(['status' => 'OK', 'link' => $request->link,'message' => 'salam khosh amadi']);
     }
 
 
@@ -202,9 +220,6 @@ class ActivityController extends Controller
     {
 
 
-
-
-
         $activity = array(
             'order_id' => $request['order_id'],
             'step' => 'return',
@@ -213,30 +228,13 @@ class ActivityController extends Controller
         );
 
         $this->model->createActivity($activity, $request->order_id);
-
-
-//        dd('d');
-//
-//        //check pay amount is equal orginal amount
-//        $order = Order::where('id', $request->order_id)->first();
-//        if ($order->amount != $request->amount) {
-//            $request->request->add(['status' => 405]);
-//        }
-//
-//
-////        $request->request->add(['message' => $this->get_status_description($request->status)]);
-//
-//        //set data for insert in activity table
-//
-//        Activity::insert($activity);
-
-
         return redirect()->route('show', $request['order_id']);
 
     }
 
-    /*
-     * set message
+    /**
+     * @param $status
+     * @return string
      */
     public function get_status_description($status)
     {
@@ -289,75 +287,64 @@ class ActivityController extends Controller
     /*
      * connect to verify API IDPay and check double spendding
      */
-    public function verify(Request $request)
+    public function verify(Request $request, $id)
     {
 
-        $params = [
-            'id' => $request['id'],
-            'order_id' => $request['order_id'],
-        ];
-        $order = order::where('id', $request['order_id'])->first();
 
-        $_request['params'] = $params;
-        $_request['url'] = 'POST: https://api.idpay.ir/v1.1/payment/verify';
-        $_request['header'] = [
+        $order = Order::find($id);
+
+
+        $params = [
+            'id' => json_decode($order->activities->where('step', 'create')->last()->response)->id,
+            'order_id' => $order->id,
+        ];
+
+
+
+        $header = [
             'Content-Type' => 'application/json',
             "X-API-KEY" => $order['API_KEY'],
             'X-SANDBOX' => $order['sandbox']
         ];
 
+
         //connect to verify API IDPay
         $client = new Client();
-        $res = $client->request('POST', 'https://api.idpay.ir/v1.1/payment/verify',
-            [
-                'json' => $params,
-                'headers' => $_request['header'],
-                'http_errors' => false
 
-            ]);
+        $request = [
+            'json' => $params,
+            'headers' => $header,
+            'http_errors' => false
+
+        ];
+
+        $res = $client->request('POST', 'https://api.idpay.ir/v1.1/payment/verify', $request);
 
         $response = json_decode($res->getBody());
 
-        //double sppending
-        if ($request['order_id'] != $response->order_id || $request['id'] != $response->id) {
-            $response->status = 405;
-
-        }
-
-        //insert in activity table
-        $activity = [
-            'order_id' => $request['order_id'],
+        $activity = array(
             'step' => 'verify',
-            'request' => json_encode($_request),
-            'response' => $res->getBody()
-        ];
-        $id = Activity::insertGetId($activity);
+            'request' => json_encode($request),
+            'response' => json_encode($response)
+        );
 
-        //update staus
-        Order::where('id', $params['order_id'])
-            ->update(['status' => 'complete']);
-
-
-        $data = Activity::where('id', $id)->first();
-        $data->tojson();
-        $data->request = json_decode($data->request);
-        $data->response = json_decode($data->response);
-        return $data;
+        $activity = $this->model->createActivity($activity, $order->id);
+        return \response()->json(['status' => 'OK', 'request' => json_decode($activity['request']), 'response' => json_decode($activity['response']),'message' => 'salam khosh amadi']);
 
     }
 
-    public function store_callback(Request $request)
-    {
-
-        //insert in activity table
-        $activity = [
-            'order_id' => $request['order_id'],
-            'step' => 'redirect',
-            'request' => json_encode(['url ' . $request['link']]),
-            'response' => json_encode([])
-        ];
-        Activity::insert($activity);
-
-
-    }
+//    public function store_callback(Request $request)
+//    {
+//
+//        //insert in activity table
+//        $activity = [
+//            'order_id' => $request['order_id'],
+//            'step' => 'redirect',
+//            'request' => json_encode(['url ' . $request['link']]),
+//            'response' => json_encode([])
+//        ];
+//        Activity::insert($activity);
+//
+//
+//    }
 }
