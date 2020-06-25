@@ -5,7 +5,7 @@ namespace App\Transformers;
 use App\Activity;
 use League\Fractal\TransformerAbstract;
 
-class ActivitiyView extends TransformerAbstract
+class FaildActivitiyView extends TransformerAbstract
 {
     /**
      * List of resources to automatically include
@@ -33,6 +33,7 @@ class ActivitiyView extends TransformerAbstract
     public function transform($activity)
     {
 
+//        dd($activity);
 
 
       $result=$this->transform2($activity);
@@ -45,7 +46,7 @@ class ActivitiyView extends TransformerAbstract
             'response' => $activity['response'],
             'order_id' => $activity['order_id'],
             'step' => $activity['step'],
-            'link' =>  json_decode($activity['response'])->link,
+            'link' =>  '#',
 
 
         ];

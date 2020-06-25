@@ -7,6 +7,7 @@ use App\Order;
 use App\Repositories\OrderRepositoryInterface;
 use App\Transformers\ActivitiyView;
 use App\Transformers\CallBackResultArry;
+use App\Transformers\FaildActivitiyView;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\In;
 use GuzzleHttp\Client;
@@ -143,6 +144,7 @@ class ActivityController extends Controller
         ];
 
 
+
         $client = new Client();
         $response = $client->request('POST', $this->paymentEndpoint,
             [
@@ -153,46 +155,49 @@ class ActivityController extends Controller
 
 
         $responseBody = json_decode($response->getBody());
-
-//        if ($response->getStatusCode() !== 201)
-//            return \response()->json(['status' => 'OK', 'paymentAnswer' => $paymentAnswer, 'transferToPort' => $transferToPort, 'message' => 'salam khosh amadi']);
-//
-
-
-
-        if ($response->getStatusCode() == 201) {
-
-            $this->model->update(['return_id' => $responseBody->id], $order->id);
-
-        }
-
-
-        //set value for activity table
         $activity = [
             'step' => 'create',
             'request' => json_encode($params),
             'response' => json_encode($responseBody)
         ];
 
-
         $activity = $this->model->createActivity($activity, $order->id);
 
 
-        $activity = Fractal::create()->item($activity, new ActivitiyView())
-            ->toArray();
+        if ($response->getStatusCode() == 201) {
+
+            $this->model->update(['return_id' => $responseBody->id], $order->id);
+            $activity = Fractal::create()->item($activity, new ActivitiyView())
+                ->toArray();
+
+            $paymentAnswer = view('partial.paymentAnswer')->with([
+                'activity' => $activity,
+            ])->render();
 
 
-        $paymentAnswer = view('partial.paymentAnswer')->with([
-            'activity' => $activity,
-        ])->render();
+            $transferToPort = view('partial.transferToPort')->with([
+                'link' => $activity['data']['link'],
+                'order_id' => $order->id,
+                'callBackUrl' => $this->calbackUrl,
+            ])->render();
 
-        $transferToPort = view('partial.transferToPort')->with([
-            'link' => $activity['data']['link'],
-            'order_id' => $order->id,
-            'callBackUrl' => $this->calbackUrl,
-        ])->render();
+            return \response()->json(['status' => 'OK', 'paymentAnswer' => $paymentAnswer, 'transferToPort' => $transferToPort, 'message' => 'salam khosh amadi']);
 
-        return \response()->json(['status' => 'OK', 'paymentAnswer' => $paymentAnswer, 'transferToPort' => $transferToPort, 'message' => 'salam khosh amadi']);
+
+        }else{
+
+            $activity = Fractal::create()->item($activity, new FaildActivitiyView())
+                ->toArray();
+
+            $paymentAnswer = view('partial.paymentAnswer')->with([
+                'activity' => $activity,
+            ])->render();
+
+
+            return \response()->json(['status' => 'ERROR', 'paymentAnswer' => $paymentAnswer, 'message' => 'salam khosh amadi']);
+
+
+        }
 
 
     }

@@ -1,4 +1,10 @@
-<hr>
+<blockquote class="blockquote text-center titleAction">
+    <p class="mb-0">تایید تراکنش</p>
+    <footer class="blockquote-footer"><cite title="Source Title">
+        </cite></footer>
+</blockquote>
+
+
 <div class="col-lg-6">
 
 
@@ -18,21 +24,12 @@
 <div class="col-lg-6" id="verifyResult">
 
 
+    <pre id="verifyRequest" style="display:none; color:green; font-size: 10px; font-weight: bold;"></pre>
 
-
-
-        <pre id="verifyRequest"  style="display:none; color:green; font-size: 10px; font-weight: bold;"></pre>
-
-        <pre id="verifyResponse"  style="display:none; color:green; font-size: 10px; font-weight: bold;"></pre>
-
-
-
-
+    <pre id="verifyResponse" style="display:none; color:green; font-size: 10px; font-weight: bold;"></pre>
 
 
     <script>
-
-
 
 
         $(document).on('submit', '#verifyTransaction', function (e) {
@@ -41,8 +38,7 @@
             e.preventDefault(); // avoid to execute the actual submit of the form.
             var form = $(this);
             var url = form.attr('action');
-            // var content = form.attr('data-div');
-            // var create_button = $(form).parent().children('.create_button').attr('id');
+
 
             alert(url)
             $.ajaxSetup({
@@ -63,8 +59,8 @@
                     var verifyRequest = document.getElementById("verifyRequest");
                     var verifyResponse = document.getElementById("verifyResponse");
                     //
-                    var obj =result.request;
-                    var obj2 =result.response;
+                    var obj = result.request;
+                    var obj2 = result.response;
 
                     verifyRequest.innerHTML = JSON.stringify(obj, undefined, 4);
                     verifyResponse.innerHTML = JSON.stringify(obj2, undefined, 4);
@@ -73,20 +69,12 @@
                     $("#verifyResponse").show();
 
 
-
-
                 },
                 error: function (error) {
                     console.log(error);
                 }
             });
         });
-
-
-
-
-
-
 
 
     </script>

@@ -1,8 +1,8 @@
-<form class="form-horizontal" action="{{route('payment',['id'=>$order_id])}}" id="transferToPortRequest">
+<form class="form-horizontal" action="{{route('payment',['id'=>$order_id])}}" data-content="transferToPortRequestSubmit" id="transferToPortRequest">
     <input type="hidden" name="link" value="{{$link}}">
     <div class="form-group">
         <div class="col-sm-offset-3 col-sm-9">
-            <button type="submit" class="btn btn-default">Submit</button>
+            <button type="submit" class="btn btn-default" id="transferToPortRequestSubmit">Submit</button>
         </div>
     </div>
 </form>
@@ -16,8 +16,8 @@
         e.preventDefault();
         var form = $(this);
         var url = form.attr('action');
-
-
+        var submitButton = form.attr('data-content');
+        $("#" + submitButton).attr("disabled", true);
         var timing;
         var myTimer;
 
