@@ -24,6 +24,10 @@
         }
     </style>
 </head>
+
+
+<body>
+
 <header id="header" class="navbar navbar-static-top">
     <div id="header-logo">
         <a href="">
@@ -36,8 +40,6 @@
 
 
 </header>
-<body>
-
 
 <div class="container">
 
@@ -47,6 +49,10 @@
 
 
 </body>
+
+<div class="row" id="load" style="background:#4B476D;height:2%;  top: 0; position:fixed; direction: ltr !important; align-items: left!important; text-align: left !important; "></div>
+
+
 </html>
 
 <style>

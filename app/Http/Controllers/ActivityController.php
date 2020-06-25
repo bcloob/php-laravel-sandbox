@@ -97,6 +97,8 @@ class ActivityController extends Controller
         }
 
 
+
+//        if (isset($order))
         return view('show')
             ->with(
                 [
@@ -105,6 +107,7 @@ class ActivityController extends Controller
                     'callbackHtml' => $callbackHtml,
                     'callbackResultHtml' => $callbackResultHtml,
                     'verifyTansactionHtml' => $verifyTansactionHtml,
+                    'order_id' => $verifyTansactionHtml,
                 ]
             );
 

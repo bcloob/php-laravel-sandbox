@@ -4,9 +4,29 @@
 
 
 
+
 @section('content')
 
 
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $("button").click(function(){
+                alert()
+                var div = $("#load")
+
+                div.animate({width: '100%', opacity: '0.18'}, "slow");
+
+                // $("#load").animate({
+                //     wieth: 'toggle'
+                // });
+            });
+        });
+    </script>
+
+    <button>Start Animation</button>
 
 
     <div class="row">
